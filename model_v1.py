@@ -112,49 +112,62 @@ class LocalBinaryPatterns:
 		# return the histogram of Local Binary Patterns
 		return hist
 
-# 1st
-conv1 = conv2d(input, num_outputs=96,
-            kernel_size=[11,11], stride=4, padding="VALID",
-            activation_fn=tf.nn.relu)
-lrn1 = tf.nn.local_response_normalization(conv1, bias=2, alpha=0.0001,beta=0.75)
-pool1 = max_pool2d(lrn1, kernel_size=[3,3], stride=2)
+train_datagen = ImageDataGenerator(
+    rotation_range=15,
+    rescale=1./255,
+    shear_range=0.1,
+    zoom_range=0.2,
+    horizontal_flip=True,
+    width_shift_range=0.1,
+    height_shift_range=0.1
+)
 
-# 2nd
-conv2 = conv2d(pool1, num_outputs=256,
-            kernel_size=[5,5], stride=1, padding="VALID",
-            biases_initializer=tf.ones_initializer(),
-            activation_fn=tf.nn.relu)
-lrn2 = tf.nn.local_response_normalization(conv2, bias=2, alpha=0.0001, beta=0.75)
-pool2 = max_pool2d(lrn2, kernel_size=[3,3], stride=2)
+def model(self):
+    # 1st
+    conv1 = conv2d(input, num_outputs=96,
+                kernel_size=[11,11], stride=4, padding="VALID",
+                activation_fn=tf.nn.relu)
+    lrn1 = tf.nn.local_response_normalization(conv1, bias=2, alpha=0.0001,beta=0.75)
+    pool1 = max_pool2d(lrn1, kernel_size=[3,3], stride=2)
 
-#3rd
-conv3 = conv2d(pool2, num_outputs=384,
-            kernel_size=[3,3], stride=1, padding="VALID",
-            activation_fn=tf.nn.relu)
+    # 2nd
+    conv2 = conv2d(pool1, num_outputs=256,
+                kernel_size=[5,5], stride=1, padding="VALID",
+                biases_initializer=tf.ones_initializer(),
+                activation_fn=tf.nn.relu)
+    lrn2 = tf.nn.local_response_normalization(conv2, bias=2, alpha=0.0001, beta=0.75)
+    pool2 = max_pool2d(lrn2, kernel_size=[3,3], stride=2)
 
-#4th
-conv4 = conv2d(conv3, num_outputs=384,
-            kernel_size=[3,3], stride=1, padding="VALID",
-            biases_initializer=tf.ones_initializer(),
-            activation_fn=tf.nn.relu)
+    #3rd
+    conv3 = conv2d(pool2, num_outputs=384,
+                kernel_size=[3,3], stride=1, padding="VALID",
+                activation_fn=tf.nn.relu)
 
-#5th
-conv5 = conv2d(conv4, num_outputs=256,
-            kernel_size=[3,3], stride=1, padding="VALID",
-            biases_initializer=tf.ones_initializer(),
-            activation_fn=tf.nn.relu)
-pool5 = max_pool2d(conv5, kernel_size=[3,3], stride=2)
+    #4th
+    conv4 = conv2d(conv3, num_outputs=384,
+                kernel_size=[3,3], stride=1, padding="VALID",
+                biases_initializer=tf.ones_initializer(),
+                activation_fn=tf.nn.relu)
 
-#6th
-flat = flatten(pool5)
-fcl1 = fully_connected(flat, num_outputs=4096,
-                        biases_initializer=tf.ones_initializer(), activation_fn=tf.nn.relu)
-dr1 = tf.nn.dropout(fcl1, 0.5)
+    #5th
+    conv5 = conv2d(conv4, num_outputs=256,
+                kernel_size=[3,3], stride=1, padding="VALID",
+                biases_initializer=tf.ones_initializer(),
+                activation_fn=tf.nn.relu)
+    pool5 = max_pool2d(conv5, kernel_size=[3,3], stride=2)
 
-#7th
-fcl2 = fully_connected(dr1, num_outputs=4096,
-                        biases_initializer=tf.ones_initializer(), activation_fn=tf.nn.relu)
-dr2 = tf.nn.dropout(fcl2, 0.5)
+    #6th
+    flat = flatten(pool5)
+    fcl1 = fully_connected(flat, num_outputs=4096,
+                            biases_initializer=tf.ones_initializer(), activation_fn=tf.nn.relu)
+    dr1 = tf.nn.dropout(fcl1, 0.5)
 
-#output
-out = fully_connected(dr2, num_outputs=self.num_classes, activation_fn=None)
+    #7th
+    fcl2 = fully_connected(dr1, num_outputs=4096,
+                            biases_initializer=tf.ones_initializer(), activation_fn=tf.nn.relu)
+    dr2 = tf.nn.dropout(fcl2, 0.5)
+
+    #output
+    out = fully_connected(dr2, num_outputs=self.num_classes, activation_fn=None)
+
+    return out
