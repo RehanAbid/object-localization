@@ -171,3 +171,10 @@ def model(self):
     out = fully_connected(dr2, num_outputs=self.num_classes, activation_fn=None)
 
     return out
+
+
+def main ():
+    dataset_path = './reduced dataset'
+    learning_rate = 10
+    epochs = 15
+    batch_size = 5
